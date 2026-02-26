@@ -1,6 +1,12 @@
 [package]
-name = "stellar_drifter"
+name = "stellar_drift"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
+bevy = "0.13.2"
+bevy_rapier2d = "0.25.0"
+rand = "0.8.5"
+
+[profile.dev.package."*"]
+opt-level = 3

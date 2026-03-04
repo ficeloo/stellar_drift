@@ -4,9 +4,24 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.13.2"
-bevy_rapier2d = "0.25.0"
+# On désactive les default-features pour gagner ~2 Go d'espace target/
+bevy = { version = "0.12.1", default-features = false, features = [
+    "bevy_winit",     # Fenêtrage
+    "bevy_render",    # Moteur de rendu
+    "bevy_sprite",    # Sprites 2D (ton vaisseau)
+    "bevy_asset",     # Chargement d'images
+    "x11",            # Support Linux école
+    "png"             # Support format ton image
+] }
+bevy_rapier2d = "0.23.0"
 rand = "0.8.5"
 
+[profile.dev]
+debug = 0         # INDISPENSABLE : supprime les symboles de debug (gain de place énorme)
+strip = "symbols"    # Retire les symboles du binaire final
+incremental = false  # Désactive l'incrémental (génère moins de fichiers temporaires)
+opt-level = 1     # Un peu d'optimisation pour que ça ne rame pas trop
+
 [profile.dev.package."*"]
+debug = 0
 opt-level = 3

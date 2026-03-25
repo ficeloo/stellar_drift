@@ -3,6 +3,7 @@
 
 use bevy::prelude::*;
 
+mod asteroid;
 mod camera;
 mod player;
 

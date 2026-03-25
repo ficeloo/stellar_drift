@@ -12,12 +12,34 @@ pub struct Movement {
     pub velocity: Vec3,
 }
 
+impl Movement {
+    pub fn new(velocity: Vec3) -> Self {
+        Self { velocity }
+    }
+}
+
+#[derive(Component)]
+pub struct Health {
+    pub current: u8,
+    pub max: u8,
+}
+
+impl Health {
+    pub fn new(amount: u8) -> Self {
+        Self {
+            current: amount,
+            max: amount,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Player;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     pub player: Player,
+    pub health: Health,
     pub movement: Movement,
     pub sprite: SpriteBundle,
 }
@@ -83,6 +105,7 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
 
     let player_bundle = PlayerBundle {
         player: Player,
+        health: Health::new(3),
         movement: Movement {
             velocity: Vec3::ZERO,
         },

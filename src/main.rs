@@ -5,12 +5,20 @@ use bevy::prelude::*;
 
 mod asteroid;
 mod camera;
+mod game;
 mod player;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (camera::spawn_camera, player::spawn_player))
+        .add_systems(
+            Startup,
+            (
+                camera::spawn_camera,
+                player::spawn_player,
+                asteroid::spawn_asteroid,
+            ),
+        )
         .add_systems(Update, player::move_player)
         .run()
 }

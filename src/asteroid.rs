@@ -3,8 +3,8 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::prelude::*;
 
-use crate::game::LevelState;
-use crate::player::{Health, Movement};
+use crate::entity::*;
+use crate::game::*;
 
 const A_S1_SPRITE_PATH: &str = "asteroid-1.png";
 const A_S1_SPRITE_SIZE: f32 = 0.2;
@@ -15,7 +15,8 @@ const A_S2_SPRITE_SIZE: f32 = 0.4;
 const A_S3_SPRITE_PATH: &str = "asteroid-3.png";
 const A_S3_SPRITE_SIZE: f32 = 0.6;
 
-const A_MAX_SPEED: f32 = 150.0;
+const A_MAX_SPEED: f32 = 250.0;
+const A_MAX_ROTATION_SPEED: f32 = 3.0;
 
 #[derive(Component)]
 pub struct Asteroid;
@@ -54,9 +55,37 @@ fn generate_random_velocity(max_speed: f32) -> Vec3 {
     Vec3::new(vel_x, vel_y, 0.0).normalize() * rand_speed
 }
 
+fn generate_random_rotation() -> f32 {
+    let mut rng = rand::thread_rng();
+
+    rng.gen_range(-A_MAX_ROTATION_SPEED..A_MAX_ROTATION_SPEED)
+}
+
+pub fn move_asteroid(
+    mut asteroid_query: Query<(&mut Transform, &mut Movement), With<Asteroid>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    delta_time: Res<Time>,
+) {
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+    let delta_time = delta_time.delta_seconds();
+    let half_width = window.width() / 2.0;
+    let half_height = window.height() / 2.0;
+
+    for (mut transform, movement) in asteroid_query.iter_mut() {
+        transform.rotate_z(movement.rotation_speed * delta_time);
+
+        // Principe d'inertie dans le vide
+        transform.translation += movement.velocity * delta_time;
+
+        is_entity_oob(&mut transform, half_width, half_height);
+    }
+}
+
 fn create_asteroid(
     size: AsteroidSize,
-    window: &Window,
+    position: Vec3,
     asset_server: &AssetServer,
 ) -> AsteroidBundle {
     let (sprite_path, sprite_size) = match size {
@@ -70,7 +99,7 @@ fn create_asteroid(
     let asteroid_sprite = SpriteBundle {
         texture: asteroid_asset,
         transform: Transform {
-            translation: generate_random_position(window.width() / 2.0, window.height() / 2.0),
+            translation: position, //
             scale: Vec3::splat(sprite_size),
             ..default()
         },
@@ -81,7 +110,10 @@ fn create_asteroid(
         asteroid: Asteroid,
         size,
         health: Health::new(1),
-        movement: Movement::new(generate_random_velocity(A_MAX_SPEED)),
+        movement: Movement::new(
+            generate_random_velocity(A_MAX_SPEED),
+            generate_random_rotation(),
+        ),
         sprite: asteroid_sprite,
     }
 }
@@ -98,6 +130,11 @@ pub fn spawn_asteroid(
 
     // Il faut que je rajoute le level_state afin d'augmenter le nombre d'asteroides
     for _ in 0..(0 + 3) {
-        commands.spawn(create_asteroid(AsteroidSize::Large, window, &assets_server));
+        let position = generate_random_position(window.width() / 2.0, window.height() / 2.0);
+        commands.spawn(create_asteroid(
+            AsteroidSize::Large,
+            position,
+            &assets_server,
+        ));
     }
 }

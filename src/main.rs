@@ -5,6 +5,7 @@ use bevy::prelude::*;
 
 mod asteroid;
 mod camera;
+mod entity;
 mod game;
 mod player;
 
@@ -19,6 +20,13 @@ fn main() {
                 asteroid::spawn_asteroid,
             ),
         )
-        .add_systems(Update, player::move_player)
+        .add_systems(
+            Update,
+            (
+                (player::spawn_bullet, player::move_bullet).chain(),
+                player::move_player,
+                asteroid::move_asteroid,
+            ),
+        )
         .run()
 }

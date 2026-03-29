@@ -1,5 +1,7 @@
 /***** PLAYER.RS *****/
 
+use crate::entity::*;
+use crate::game::*;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 const P_SPRITE_SIZE: f32 = 0.3;
@@ -7,34 +9,22 @@ const P_SPRITE_PATH: &str = "stellar_drifter.png";
 const P_SPEED: f32 = 1750.0;
 const P_ROT_SPEED: f32 = 5.0;
 
-#[derive(Component)]
-pub struct Movement {
-    pub velocity: Vec3,
-}
-
-impl Movement {
-    pub fn new(velocity: Vec3) -> Self {
-        Self { velocity }
-    }
-}
-
-#[derive(Component)]
-pub struct Health {
-    pub current: u8,
-    pub max: u8,
-}
-
-impl Health {
-    pub fn new(amount: u8) -> Self {
-        Self {
-            current: amount,
-            max: amount,
-        }
-    }
-}
+const B_SPRITE_PATH: &str = "bullet.png";
+const B_SPRITE_SIZE: f32 = 0.3;
+const B_SPEED: f32 = 1000.0;
 
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+pub struct Bullet;
+
+#[derive(Bundle)]
+pub struct BulletBundle {
+    pub bullet: Bullet,
+    pub movement: Movement,
+    pub sprite: SpriteBundle,
+}
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
@@ -42,19 +32,6 @@ pub struct PlayerBundle {
     pub health: Health,
     pub movement: Movement,
     pub sprite: SpriteBundle,
-}
-
-fn is_player_oob(transform: &mut Transform, half_width: f32, half_height: f32) {
-    if transform.translation.x > half_width + 40.0 {
-        transform.translation.x = -(half_width + 40.0);
-    } else if transform.translation.x < -(half_width + 40.0) {
-        transform.translation.x = half_width + 40.0;
-    }
-    if transform.translation.y > half_height + 40.0 {
-        transform.translation.y = -(half_height + 40.0);
-    } else if transform.translation.y < -(half_height + 40.0) {
-        transform.translation.y = half_height + 40.0;
-    }
 }
 
 pub fn move_player(
@@ -66,11 +43,12 @@ pub fn move_player(
     let Ok(window) = window_query.get_single() else {
         return;
     };
+
     let delta_time = delta_time.delta_seconds();
     let half_width = window.width() / 2.0;
     let half_height = window.height() / 2.0;
 
-    for (mut transform, mut movement) in player_query.iter_mut() {
+    if let Ok((mut transform, mut movement)) = player_query.get_single_mut() {
         let direction = transform.up();
 
         if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
@@ -90,8 +68,63 @@ pub fn move_player(
         // Principe d'inertie dans le vide
         transform.translation += movement.velocity * delta_time;
 
-        is_player_oob(&mut transform, half_width, half_height);
+        is_entity_oob(&mut transform, half_width, half_height);
     }
+}
+
+pub fn move_bullet(
+    mut bullet_query: Query<(&mut Transform, &mut Movement), With<Bullet>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    delta_time: Res<Time>,
+) {
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+
+    let delta_time = delta_time.delta_seconds();
+    let half_width = window.width() / 2.0;
+    let half_height = window.height() / 2.0;
+
+    for (mut transform, movement) in bullet_query.iter_mut() {
+        transform.translation += movement.velocity * delta_time;
+
+        is_entity_oob(&mut transform, half_width, half_height);
+    }
+}
+
+pub fn spawn_bullet(
+    mut commands: Commands,
+    player_query: Query<(&mut Transform, &mut Movement), With<Player>>,
+    assets_server: Res<AssetServer>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if !keyboard_input.just_pressed(KeyCode::Space) {
+        return;
+    }
+
+    let Ok((transform, movement)) = player_query.get_single() else {
+        return;
+    };
+
+    let bullet_asset = assets_server.load(B_SPRITE_PATH);
+
+    let bullet_sprite = SpriteBundle {
+        texture: bullet_asset,
+        transform: Transform {
+            translation: transform.translation,
+            rotation: transform.rotation,
+            scale: Vec3::splat(B_SPRITE_SIZE),
+        },
+        ..default()
+    };
+
+    let bullet_bundle = BulletBundle {
+        bullet: Bullet,
+        movement: Movement::new(B_SPEED * transform.up(), 0.0),
+        sprite: bullet_sprite,
+    };
+
+    commands.spawn(bullet_bundle);
 }
 
 pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
@@ -106,9 +139,7 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
     let player_bundle = PlayerBundle {
         player: Player,
         health: Health::new(3),
-        movement: Movement {
-            velocity: Vec3::ZERO,
-        },
+        movement: Movement::new(Vec3::ZERO, 0.0),
         sprite: ship_sprite,
     };
     commands.spawn(player_bundle);

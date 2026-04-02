@@ -3,11 +3,14 @@
 use crate::entity::*;
 use crate::game::*;
 use bevy::{prelude::*, window::PrimaryWindow};
+use bevy_rapier2d::prelude::*;
 
 const P_SPRITE_SIZE: f32 = 0.3;
 const P_SPRITE_PATH: &str = "stellar_drifter.png";
-const P_SPEED: f32 = 1750.0;
-const P_ROT_SPEED: f32 = 5.0;
+const P_SPEED: f32 = 10.0;
+const P_ROT_SPEED: f32 = 0.4;
+const LIN_DAMP: f32 = 1.2;
+const ANG_DAMP: f32 = 9.0;
 
 const B_SPRITE_PATH: &str = "bullet.png";
 const B_SPRITE_SIZE: f32 = 0.3;
@@ -24,49 +27,47 @@ pub struct BulletBundle {
     pub bullet: Bullet,
     pub movement: Movement,
     pub sprite: SpriteBundle,
+    pub timer: LifeTime,
 }
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     pub player: Player,
     pub health: Health,
-    pub movement: Movement,
     pub sprite: SpriteBundle,
+    pub body: RigidBody,
+    pub velocity: Velocity,
+    pub damping: Damping,
+    pub shape: Collider,
 }
 
 pub fn move_player(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut Movement), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut Velocity), With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    delta_time: Res<Time>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
     };
 
-    let delta_time = delta_time.delta_seconds();
     let half_width = window.width() / 2.0;
     let half_height = window.height() / 2.0;
 
-    if let Ok((mut transform, mut movement)) = player_query.get_single_mut() {
-        let direction = transform.up();
-
-        if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
-            movement.velocity += direction * P_SPEED * delta_time;
-        }
-        if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
-            movement.velocity -= ((direction * P_SPEED * delta_time) / 4.0).clamp_length(0.0, 50.0);
-        }
+    if let Ok((mut transform, mut velocity)) = player_query.get_single_mut() {
         if keyboard_input.any_pressed([KeyCode::A, KeyCode::Left]) {
-            transform.rotate_z(P_ROT_SPEED * delta_time);
+            velocity.angvel += P_ROT_SPEED; //transform.rotate_z(P_ROT_SPEED * time.delta_seconds());
         }
         if keyboard_input.any_pressed([KeyCode::D, KeyCode::Right]) {
-            transform.rotate_z(-P_ROT_SPEED * delta_time);
+            velocity.angvel -= P_ROT_SPEED;
+            // transform.rotate_z(-P_ROT_SPEED * time.delta_seconds());
         }
-        movement.velocity = (movement.velocity * 0.98).clamp_length(0.0, 15000.0);
-
-        // Principe d'inertie dans le vide
-        transform.translation += movement.velocity * delta_time;
+        let direction = transform.up().truncate();
+        if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
+            velocity.linvel += direction * P_SPEED;
+        }
+        if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
+            velocity.linvel -= ((direction * P_SPEED) / 4.0).clamp_length(0.0, 5.0);
+        }
 
         is_entity_oob(&mut transform, half_width, half_height);
     }
@@ -92,9 +93,22 @@ pub fn move_bullet(
     }
 }
 
+pub fn despawn_bullet(
+    mut commands: Commands,
+    mut bullet_query: Query<(Entity, &mut LifeTime), With<Bullet>>,
+    time: Res<Time>,
+) {
+    for (entity, mut timer) in bullet_query.iter_mut() {
+        timer.timer.tick(time.delta());
+        if timer.timer.finished() {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
 pub fn spawn_bullet(
     mut commands: Commands,
-    player_query: Query<(&mut Transform, &mut Movement), With<Player>>,
+    player_query: Query<&mut Transform, With<Player>>,
     assets_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
@@ -102,7 +116,7 @@ pub fn spawn_bullet(
         return;
     }
 
-    let Ok((transform, movement)) = player_query.get_single() else {
+    let Ok(transform) = player_query.get_single() else {
         return;
     };
 
@@ -122,6 +136,7 @@ pub fn spawn_bullet(
         bullet: Bullet,
         movement: Movement::new(B_SPEED * transform.up(), 0.0),
         sprite: bullet_sprite,
+        timer: LifeTime::new(1.5, TimerMode::Once),
     };
 
     commands.spawn(bullet_bundle);
@@ -139,8 +154,14 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
     let player_bundle = PlayerBundle {
         player: Player,
         health: Health::new(3),
-        movement: Movement::new(Vec3::ZERO, 0.0),
         sprite: ship_sprite,
+        body: RigidBody::Dynamic,
+        velocity: Velocity::default(),
+        damping: Damping {
+            linear_damping: LIN_DAMP,
+            angular_damping: ANG_DAMP,
+        },
+        shape: Collider::ball(P_SPRITE_SIZE * 10.0),
     };
     commands.spawn(player_bundle);
 }

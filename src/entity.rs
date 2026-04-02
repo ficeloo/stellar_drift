@@ -31,3 +31,16 @@ impl Health {
         }
     }
 }
+
+#[derive(Component)]
+pub struct LifeTime {
+    pub timer: Timer,
+}
+
+impl LifeTime {
+    pub fn new(duration: f32, mode: TimerMode) -> Self {
+        Self {
+            timer: Timer::from_seconds(duration, mode),
+        }
+    }
+}

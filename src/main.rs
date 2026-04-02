@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 mod asteroid;
 mod camera;
@@ -12,6 +13,12 @@ mod player;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugins(RapierDebugRenderPlugin::default())
+        .insert_resource(RapierConfiguration {
+            gravity: Vec2::ZERO,
+            ..default()
+        })
         .add_systems(
             Startup,
             (
@@ -23,7 +30,12 @@ fn main() {
         .add_systems(
             Update,
             (
-                (player::spawn_bullet, player::move_bullet).chain(),
+                (
+                    player::spawn_bullet,
+                    player::move_bullet,
+                    player::despawn_bullet,
+                )
+                    .chain(),
                 player::move_player,
                 asteroid::move_asteroid,
             ),

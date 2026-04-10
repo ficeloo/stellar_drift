@@ -30,15 +30,16 @@ fn main() {
         .add_systems(
             Update,
             (
-                (
-                    player::spawn_bullet,
-                    player::move_bullet,
-                    player::despawn_bullet,
-                )
-                    .chain(),
-                player::move_player,
-                asteroid::move_asteroid,
-            ),
+                player::spawn_bullet,
+                player::move_bullet,
+                player::despawn_bullet,
+            )
+                .chain(),
         )
+        .add_systems(
+            Update,
+            (player::player_death, player::player_respawn).chain(),
+        )
+        .add_systems(Update, (player::move_player, asteroid::move_asteroid))
         .run()
 }

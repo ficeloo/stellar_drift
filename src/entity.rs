@@ -1,6 +1,11 @@
 /***** ENTITY.RS *****/
 
+use crate::Group;
 use bevy::prelude::*;
+
+pub const GROUP_PLAYER: Group = Group::GROUP_1;
+pub const GROUP_ASTEROID: Group = Group::GROUP_2;
+pub const GROUP_BULLET: Group = Group::GROUP_3;
 
 #[derive(Component)]
 pub struct Health {

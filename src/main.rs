@@ -4,6 +4,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use crate::asteroid::AsteroidHitEvent;
+
 mod asteroid;
 mod camera;
 mod entity;
@@ -19,6 +21,7 @@ fn main() {
             gravity: Vec2::ZERO,
             ..default()
         })
+        .add_event::<AsteroidHitEvent>()
         .add_systems(
             Startup,
             (
@@ -41,5 +44,6 @@ fn main() {
             (player::player_death, player::player_respawn).chain(),
         )
         .add_systems(Update, (player::move_player, asteroid::move_asteroid))
+        .add_systems(Update, asteroid::handle_asteroid_hit)
         .run()
 }

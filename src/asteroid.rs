@@ -8,12 +8,12 @@ use crate::entity::*;
 use crate::game::*;
 
 const A_S1_SPRITE_PATH: &str = "asteroid-1.png";
-const A_S1_SPRITE_SIZE: f32 = 0.2;
-const A_S1_SHAPE: f32 = 30.0;
+const A_S1_SPRITE_SIZE: f32 = 0.8;
+const A_S1_SHAPE: f32 = 50.0;
 
 const A_S2_SPRITE_PATH: &str = "asteroid-2.png";
-const A_S2_SPRITE_SIZE: f32 = 0.4;
-const A_S2_SHAPE: f32 = 60.0;
+const A_S2_SPRITE_SIZE: f32 = 0.8;
+const A_S2_SHAPE: f32 = 70.0;
 
 const A_S3_SPRITE_PATH: &str = "asteroid-3.png";
 const A_S3_SPRITE_SIZE: f32 = 0.8;
@@ -21,10 +21,6 @@ const A_S3_SHAPE: f32 = 120.0;
 
 const A_MAX_SPEED: f32 = 250.0;
 const A_MAX_ROTATION_SPEED: f32 = 3.0;
-
-const GROUP_PLAYER: Group = Group::GROUP_1;
-const GROUP_ASTEROID: Group = Group::GROUP_2;
-const GROUP_BULLET: Group = Group::GROUP_3;
 
 #[derive(Component)]
 pub struct Asteroid;
@@ -34,6 +30,13 @@ pub enum AsteroidSize {
     Large,
     Medium,
     Small,
+}
+
+#[derive(Event)]
+pub struct AsteroidHitEvent {
+    pub asteroid_entity: Entity,
+    pub asteroid_position: Vec3,
+    pub asteroid_size: AsteroidSize,
 }
 
 #[derive(Bundle)]
@@ -87,6 +90,40 @@ pub fn move_asteroid(
     }
 }
 
+pub fn handle_asteroid_hit(
+    mut commands: Commands,
+    mut hit_events: EventReader<AsteroidHitEvent>,
+    asset_server: Res<AssetServer>,
+) {
+    for event in hit_events.read() {
+        match event.asteroid_size {
+            AsteroidSize::Large => {
+                for _ in 0..2 {
+                    commands.spawn(create_asteroid(
+                        AsteroidSize::Medium,
+                        event.asteroid_position,
+                        &asset_server,
+                    ));
+                }
+                commands.entity(event.asteroid_entity).despawn();
+            }
+            AsteroidSize::Medium => {
+                for _ in 0..2 {
+                    commands.spawn(create_asteroid(
+                        AsteroidSize::Small,
+                        event.asteroid_position,
+                        &asset_server,
+                    ));
+                }
+                commands.entity(event.asteroid_entity).despawn();
+            }
+            AsteroidSize::Small => {
+                commands.entity(event.asteroid_entity).despawn();
+            }
+        }
+    }
+}
+
 fn create_asteroid(
     size: AsteroidSize,
     position: Vec3,
@@ -103,7 +140,7 @@ fn create_asteroid(
     let asteroid_sprite = SpriteBundle {
         texture: asteroid_asset,
         transform: Transform {
-            translation: position, //
+            translation: position,
             scale: Vec3::splat(sprite_size),
             ..default()
         },

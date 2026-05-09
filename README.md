@@ -4,45 +4,42 @@ Projet d'apprentissage en Rust + Bevy reprenant le jeu Asteroid d'Atari.
 ## Statut
 > 🚧 Projet en cours de développement. 🚧
 
-Il s'agit de mon premier développé entièrement en Rust sous Bevy.
+Il s'agit de mon premier projet développé entièrement en Rust sous Bevy.
 
 Jouable prochainement. Les prototypes peuvent être lancés.
 
 ## Description du projet
 Ce projet est à but éducatif.
-Il me permet d'apprendre l'**ECS**, *Entity Component System*, ainsi que de me familiariser avec **Bevy**, un moteur entièrement développé en Rust.
+
+J'y explore la conception de jeux indépendants. Stellar Drift est volontairement minimaliste afin de me concentrer sur l'entraînement de la stack technique.
+
+Il me permet aussi d'apprendre l'**ECS**, *Entity Component System*, ainsi que de me familiariser avec **Bevy**, un moteur développé en Rust.
 
 J'y intègre des notions clés, afin de saisir en profondeur les étapes de développement d'un jeu, comme :
 - Un système de rendu physique, avec Rapier2D.
-- Un gestion des états de jeu (Menu, Pause, Jeu)
+- Une gestion des états de jeu (Menu, Pause, Jeu).
 - Une intégration audio (🚧 A VENIR 🚧)
 
 ## Stack technique
-- **Langage** : Rust (édition 2021)
-- **Moteur** : Bevy 0.12.1 (ou ta version actuelle)
-- **Architecture** : ECS (Entity Component System)
-- **Plateforme cible** : compilable sous Linux / executable sous Windows (via le dossier release)
+- **Langage** : Rust (édition 2021).
+- **Moteur** : Bevy 0.12.1
+- **Architecture** : ECS (Entity Component System).
+- **Plateforme cible** : compilable sous Linux / exécutable sous Windows (via le dossier release).
 
 ## Lancer le projet
 Prérequis :
-- Rust installée ([rustup.rs](https://rustup.rs))
+- Rust installé ([rustup.rs](https://rustup.rs))
 
 ### Sous Linux
 ``` bash
-git clobe https://github.com/ficeloo/stellar_drift.git
+git clone https://github.com/ficeloo/stellar_drift.git
 cd stellar_drift
 cargo run --release
 ```
 > Le `--release` permet de lancer sans le mode débug, avec une compilation bien plus rapide.
 
 ### Sous Windows
-Tout d'abord, il faut créer un dossier à l'emplacement de votre choix, ici nommé `stellar_drift/`
-
-Il faut installer la dernière version accessible depuis le dossier release et le placer dans ce nouveau dossier.
-> Actuellement il s'agit de la v0.4
-
-Puis installer le dossier d'assets
-
-Ensuite il faudra placer les assets dans le dossier principale.
-
-Et enfin, plus qu'à lancer !
+1. Téléchargez la dernière version de la build dans la section [Releases](https://github.com/ficeloo/stellar_drift/releases) (actuellement v0.4).
+2. Téléchargez également le dossier `assets/` correspondant.
+3. Placez l'exécutable et le dossier `assets/` dans un même répertoire.
+4. Lancez l'exécutable.

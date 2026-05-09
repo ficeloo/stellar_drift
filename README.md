@@ -22,7 +22,7 @@ J'y intègre des notions clés, afin de saisir en profondeur les étapes de dév
 
 ## Stack technique
 - **Langage** : Rust (édition 2021).
-- **Moteur** : Bevy 0.12.1
+- **Moteur** : Bevy 0.12.1 (contrainte lié à l'environnement de développement)
 - **Architecture** : ECS (Entity Component System).
 - **Plateforme cible** : compilable sous Linux / exécutable sous Windows (via le dossier release).
 

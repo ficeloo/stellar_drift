@@ -43,3 +43,7 @@ cargo run --release
 2. Téléchargez également le dossier `assets/` correspondant.
 3. Placez l'exécutable et le dossier `assets/` dans un même répertoire.
 4. Lancez l'exécutable.
+
+## Ressources
+### Assets
+- Made by anim86, fetch from his Itch.io [profile page](https://anim86.itch.io/)

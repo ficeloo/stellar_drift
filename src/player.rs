@@ -48,7 +48,6 @@ pub struct BulletBundle {
 #[derive(Bundle)]
 pub struct PlayerBundle {
     pub player: Player,
-    pub health: Health,
     pub sprite: SpriteBundle,
     pub timer: PlayerTimer,
     pub body: RigidBody,
@@ -148,16 +147,12 @@ pub fn despawn_bullet(
 }
 
 pub fn player_respawn(
-    mut player_query: Query<(
-        &mut Health,
-        &mut PlayerTimer,
-        &mut Visibility,
-        &mut CollisionGroups,
-    )>,
+    mut player_query: Query<(&mut PlayerTimer, &mut Visibility, &mut CollisionGroups)>,
+    health_state: ResMut<LevelState>,
     time: Res<Time>,
 ) {
-    if let Ok((health, mut timers, mut visible, mut groups)) = player_query.get_single_mut() {
-        if health.current == 0 {
+    if let Ok((mut timers, mut visible, mut groups)) = player_query.get_single_mut() {
+        if health_state.health.current == 0 {
             return;
         }
         let delta = time.delta();
@@ -194,25 +189,19 @@ pub fn player_death(
             &mut Transform,
             &mut CollisionGroups,
             &mut Visibility,
-            &mut Health,
         ),
         With<Player>,
     >,
+    mut health_state: ResMut<LevelState>,
     mut collide: EventReader<CollisionEvent>,
 ) {
     for colliding in collide.read() {
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
-                if let Ok((
-                    mut timers,
-                    mut velocity,
-                    mut transform,
-                    mut groups,
-                    mut visibility,
-                    mut life,
-                )) = player_query.get_mut(entity)
+                if let Ok((mut timers, mut velocity, mut transform, mut groups, mut visibility)) =
+                    player_query.get_mut(entity)
                 {
-                    if timers.noclip.timer.finished() && life.current > 0 {
+                    if timers.noclip.timer.finished() && health_state.health.current > 0 {
                         *visibility = Visibility::Hidden;
                         transform.translation = Vec3::ZERO;
                         transform.rotation = Quat::IDENTITY;
@@ -221,7 +210,7 @@ pub fn player_death(
                         groups.filters = Group::NONE;
                         timers.respawn_timer.timer.reset();
                         timers.is_respawning = true;
-                        life.current -= 1;
+                        health_state.health.current -= 1;
                     }
                 }
             }
@@ -285,7 +274,6 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
 
     let player_bundle = PlayerBundle {
         player: Player,
-        health: Health::new(3),
         sprite: ship_sprite,
         timer: PlayerTimer {
             noclip: GameTimer::new(2.0, TimerMode::Once),

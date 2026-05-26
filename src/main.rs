@@ -5,6 +5,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::asteroid::AsteroidHitEvent;
+use crate::entity::Health;
 use crate::game::LevelState;
 use crate::states::GameState;
 
@@ -19,12 +20,14 @@ fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        .add_plugins(RapierDebugRenderPlugin::default())
         .insert_resource(RapierConfiguration {
             gravity: Vec2::ZERO,
             ..default()
         })
-        .insert_resource(LevelState { level: 0 })
+        .insert_resource(LevelState {
+            level: 0,
+            health: Health { current: 3, max: 3 },
+        })
         .add_state::<GameState>()
         .add_event::<AsteroidHitEvent>();
 
@@ -33,13 +36,21 @@ fn main() {
     app.add_systems(Update, states::menu.run_if(in_state(GameState::MainMenu)));
 
     app.add_systems(
-        OnEnter(GameState::LevelTransition),
+        OnEnter(GameState::FirstLevel),
         (player::spawn_player, asteroid::spawn_asteroid),
     );
 
     app.add_systems(
+        OnEnter(GameState::LevelTransition),
+        asteroid::spawn_asteroid,
+    );
+
+    app.add_systems(
         Update,
-        states::loading.run_if(in_state(GameState::LevelTransition)),
+        (
+            states::loading.run_if(in_state(GameState::LevelTransition)),
+            states::loading.run_if(in_state(GameState::FirstLevel)),
+        ),
     );
 
     app.add_systems(Update, states::pause);
@@ -74,7 +85,11 @@ fn main() {
             .run_if(in_state(GameState::Playing)),
     );
 
-    app.add_systems(OnExit(GameState::Playing), entity::remove_all_entities);
+    app.add_systems(OnEnter(GameState::GameOver), entity::remove_all_entities);
+    app.add_systems(
+        Update,
+        states::game_over.run_if(in_state(GameState::GameOver)),
+    );
 
     app.run();
 }

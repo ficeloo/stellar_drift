@@ -6,7 +6,6 @@ use rand::prelude::*;
 
 use crate::entity::*;
 use crate::game::*;
-use crate::states::GameState;
 
 const A_S1_SPRITE_PATH: &str = "asteroid-1.png";
 const A_S1_SPRITE_SIZE: f32 = 0.8;

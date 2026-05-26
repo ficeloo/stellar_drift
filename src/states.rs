@@ -11,6 +11,7 @@ pub enum GameState {
     MainMenu,
     Playing,
     Paused,
+    FirstLevel,
     LevelTransition,
     GameOver,
 }
@@ -22,7 +23,8 @@ pub fn menu(
 ) {
     if keyboard_input.just_pressed(KeyCode::Return) {
         level_state.level = 0;
-        next_state.set(GameState::LevelTransition);
+        level_state.health.current = level_state.health.max;
+        next_state.set(GameState::FirstLevel);
     }
 }
 
@@ -50,5 +52,19 @@ pub fn pause(
             }
             _ => {}
         }
+    }
+}
+
+pub fn game_over(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut next_state: ResMut<NextState<GameState>>,
+    mut level_state: ResMut<LevelState>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Return) {
+        level_state.level = 0;
+        level_state.health.current = level_state.health.max;
+        next_state.set(GameState::FirstLevel);
+    } else if keyboard_input.just_pressed(KeyCode::Escape) {
+        next_state.set(GameState::MainMenu)
     }
 }

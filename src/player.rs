@@ -134,7 +134,7 @@ pub fn despawn_bullet(
                     }
                 } else if asteroid_query.contains(entity) {
                     let Ok(asteroid) = asteroid_query.get(entity) else {
-                        return;
+                        continue;
                     };
                     hit_events.send(AsteroidHitEvent {
                         asteroid_entity: entity,

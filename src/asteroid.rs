@@ -6,6 +6,7 @@ use rand::prelude::*;
 
 use crate::entity::*;
 use crate::game::*;
+use crate::states::GameState;
 
 const A_S1_SPRITE_PATH: &str = "asteroid-1.png";
 const A_S1_SPRITE_SIZE: f32 = 0.8;
@@ -66,7 +67,7 @@ fn generate_random_velocity(max_speed: f32) -> Vec2 {
     let vel_x = rng.gen_range(-1.0..1.0);
     let vel_y = rng.gen_range(-1.0..1.0);
     let rand_speed = rng.gen_range(0.0..max_speed);
-    Vec2::new(vel_x, vel_y).normalize() * rand_speed
+    Vec2::new(vel_x, vel_y).normalize_or_zero() * rand_speed
 }
 
 fn generate_random_rotation() -> f32 {
@@ -165,7 +166,7 @@ fn create_asteroid(
 pub fn spawn_asteroid(
     mut commands: Commands,
     assets_server: Res<AssetServer>,
-    // level_state: Res<LevelState>,
+    level_state: Res<LevelState>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let Ok(window) = window_query.get_single() else {
@@ -173,7 +174,7 @@ pub fn spawn_asteroid(
     };
 
     // Il faut que je rajoute le level_state afin d'augmenter le nombre d'asteroides
-    for _ in 0..(0 + 3) {
+    for _ in 0..(level_state.level + 3) {
         let position = generate_random_position(window.width() / 2.0, window.height() / 2.0);
         commands.spawn(create_asteroid(
             AsteroidSize::Large,

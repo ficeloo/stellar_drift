@@ -1,7 +1,8 @@
 /***** ENTITY.RS *****/
 
-use crate::Group;
+use crate::states::GameState;
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 pub const GROUP_PLAYER: Group = Group::GROUP_1;
 pub const GROUP_ASTEROID: Group = Group::GROUP_2;
@@ -32,5 +33,11 @@ impl GameTimer {
         Self {
             timer: Timer::from_seconds(duration, mode),
         }
+    }
+}
+
+pub fn remove_all_entities(mut commands: Commands, entity_query: Query<Entity, With<RigidBody>>) {
+    for entity in &entity_query {
+        commands.entity(entity).despawn_recursive();
     }
 }

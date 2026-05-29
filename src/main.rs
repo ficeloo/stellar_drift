@@ -34,6 +34,7 @@ fn main() {
     app.add_systems(Startup, camera::spawn_camera);
 
     app.add_systems(Update, states::menu.run_if(in_state(GameState::MainMenu)));
+    app.add_systems(OnEnter(GameState::MainMenu), entity::remove_all_entities);
 
     app.add_systems(
         OnEnter(GameState::FirstLevel),
@@ -48,14 +49,15 @@ fn main() {
     app.add_systems(
         Update,
         (
-            states::loading.run_if(in_state(GameState::LevelTransition)),
             states::loading.run_if(in_state(GameState::FirstLevel)),
+            states::loading.run_if(in_state(GameState::LevelTransition)),
         ),
     );
 
-    app.add_systems(Update, states::pause);
+    app.add_systems(Update, states::paused.run_if(in_state(GameState::Paused)));
+    app.add_systems(Update, states::playing.run_if(in_state(GameState::Playing)));
     app.add_systems(OnEnter(GameState::Paused), game::set_physics_false);
-    app.add_systems(OnExit(GameState::Paused), game::set_physics_true);
+    app.add_systems(OnEnter(GameState::Playing), game::set_physics_true);
 
     app.add_systems(
         Update,

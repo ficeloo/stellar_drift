@@ -224,7 +224,7 @@ pub fn spawn_bullet(
     assets_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
-    if !keyboard_input.just_pressed(KeyCode::Space) {
+    if !keyboard_input.pressed(KeyCode::Space) {
         return;
     }
 

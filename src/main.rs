@@ -13,6 +13,7 @@ mod asteroid;
 mod camera;
 mod entity;
 mod game;
+mod hud;
 mod player;
 mod states;
 
@@ -35,6 +36,27 @@ fn main() {
 
     app.add_systems(Update, states::menu.run_if(in_state(GameState::MainMenu)));
     app.add_systems(OnEnter(GameState::MainMenu), entity::remove_all_entities);
+
+    /*** |HUD| ***/
+    app.add_systems(OnEnter(GameState::MainMenu), hud::spawn_menu_hud);
+    app.add_systems(OnExit(GameState::MainMenu), hud::despawn_hud);
+
+    app.add_systems(
+        OnEnter(GameState::LevelTransition),
+        (hud::update_hud, hud::despawn_hud),
+    );
+
+    app.add_systems(OnEnter(GameState::Playing), hud::spawn_playing_hud);
+    app.add_systems(Update, hud::update_hud.run_if(in_state(GameState::Playing)));
+
+    app.add_systems(OnEnter(GameState::Paused), hud::spawn_pause_hud);
+    app.add_systems(OnExit(GameState::Paused), hud::despawn_hud);
+
+    app.add_systems(OnEnter(GameState::MainMenu), hud::despawn_hud);
+    app.add_systems(OnEnter(GameState::GameOver), hud::despawn_hud);
+
+    app.add_systems(OnEnter(GameState::GameOver), hud::spawn_game_over_hud);
+    app.add_systems(OnExit(GameState::GameOver), hud::despawn_hud);
 
     app.add_systems(
         OnEnter(GameState::FirstLevel),

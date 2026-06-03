@@ -79,7 +79,6 @@ pub fn move_player(
         }
         if keyboard_input.any_pressed([KeyCode::D, KeyCode::Right]) {
             velocity.angvel -= P_ROT_SPEED;
-            // transform.rotate_z(-P_ROT_SPEED * time.delta_seconds());
         }
         let direction = transform.up().truncate();
         if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
@@ -167,6 +166,7 @@ pub fn player_respawn(
         }
 
         if !timers.noclip.timer.finished() {
+            groups.filters = Group::NONE;
             if timers.noclip.timer.remaining().as_millis() % 2 == 0 {
                 *visible = Visibility::Visible;
             } else {
@@ -187,7 +187,6 @@ pub fn player_death(
             &mut PlayerTimer,
             &mut Velocity,
             &mut Transform,
-            &mut CollisionGroups,
             &mut Visibility,
         ),
         With<Player>,
@@ -198,7 +197,7 @@ pub fn player_death(
     for colliding in collide.read() {
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
-                if let Ok((mut timers, mut velocity, mut transform, mut groups, mut visibility)) =
+                if let Ok((mut timers, mut velocity, mut transform, mut visibility)) =
                     player_query.get_mut(entity)
                 {
                     if timers.noclip.timer.finished() && health_state.health.current > 0 {
@@ -207,7 +206,6 @@ pub fn player_death(
                         transform.rotation = Quat::IDENTITY;
                         velocity.angvel = 0.0;
                         velocity.linvel = Vec2::ZERO;
-                        groups.filters = Group::NONE;
                         timers.respawn_timer.timer.reset();
                         timers.is_respawning = true;
                         health_state.health.current -= 1;

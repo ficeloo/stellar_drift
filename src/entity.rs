@@ -23,6 +23,9 @@ impl Health {
 }
 
 #[derive(Component)]
+pub struct Despawning;
+
+#[derive(Component)]
 pub struct GameTimer {
     pub timer: Timer,
 }
@@ -32,6 +35,12 @@ impl GameTimer {
         Self {
             timer: Timer::from_seconds(duration, mode),
         }
+    }
+}
+
+pub fn apply_despawn(mut commands: Commands, query: Query<Entity, With<Despawning>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 

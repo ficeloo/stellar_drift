@@ -17,6 +17,9 @@ mod hud;
 mod player;
 mod states;
 
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+struct DespawnSet;
+
 fn main() {
     let mut app = App::new();
     app.add_plugins(DefaultPlugins)
@@ -83,11 +86,7 @@ fn main() {
 
     app.add_systems(
         Update,
-        (
-            player::spawn_bullet,
-            player::move_bullet,
-            player::despawn_bullet,
-        )
+        (player::spawn_bullet, player::move_bullet)
             .chain()
             .run_if(in_state(GameState::Playing)),
     );
@@ -101,6 +100,13 @@ fn main() {
     app.add_systems(
         Update,
         (player::move_player, asteroid::move_asteroid).run_if(in_state(GameState::Playing)),
+    );
+    app.add_systems(
+        Update,
+        (
+            player::despawn_bullet.in_set(DespawnSet),
+            entity::apply_despawn.after(DespawnSet),
+        ),
     );
     app.add_systems(
         Update,

@@ -5,6 +5,7 @@ use std::time::Duration;
 use crate::asteroid::*;
 use crate::entity::*;
 use crate::game::*;
+use bevy::ecs::system::Despawn;
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
@@ -113,7 +114,7 @@ pub fn move_bullet(
 
 pub fn despawn_bullet(
     mut commands: Commands,
-    mut bullet_query: Query<(Entity, &mut GameTimer), With<Bullet>>,
+    mut bullet_query: Query<(Entity, &mut GameTimer), (With<Bullet>, Without<Despawning>)>,
     time: Res<Time>,
     mut collide: EventReader<CollisionEvent>,
     mut hit_events: EventWriter<AsteroidHitEvent>,
@@ -122,7 +123,7 @@ pub fn despawn_bullet(
     for (entity, mut timer) in bullet_query.iter_mut() {
         timer.timer.tick(time.delta());
         if timer.timer.finished() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).insert(Despawning);
         }
     }
 
@@ -130,9 +131,7 @@ pub fn despawn_bullet(
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
                 if bullet_query.contains(entity) {
-                    if let Some(mut cmd) = commands.get_entity(entity) {
-                        cmd.despawn();
-                    }
+                    commands.entity(entity).insert(Despawning);
                 } else if asteroid_query.contains(entity) {
                     let Ok(asteroid) = asteroid_query.get(entity) else {
                         continue;

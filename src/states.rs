@@ -37,21 +37,13 @@ pub fn loading(
     }
 }
 
-pub fn playing(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut next_state: ResMut<NextState<GameState>>,
-    curr_state: Res<State<GameState>>,
-) {
+pub fn playing(keyboard_input: Res<Input<KeyCode>>, mut next_state: ResMut<NextState<GameState>>) {
     if keyboard_input.just_pressed(KeyCode::Return) {
         next_state.set(GameState::Paused);
     }
 }
 
-pub fn paused(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut next_state: ResMut<NextState<GameState>>,
-    curr_state: Res<State<GameState>>,
-) {
+pub fn paused(keyboard_input: Res<Input<KeyCode>>, mut next_state: ResMut<NextState<GameState>>) {
     if keyboard_input.just_pressed(KeyCode::Return) {
         next_state.set(GameState::Playing);
     }

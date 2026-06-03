@@ -11,8 +11,11 @@ bevy = { version = "0.12.1", default-features = false, features = [
     "bevy_sprite",    # Sprites 2D (ton vaisseau)
 	"bevy_ui",
 	"bevy_text",
+	"bevy_audio",
     "bevy_asset",     # Chargement d'images
     "x11",            # Support Linux école
+	"wav",
+	"mp3",
     "png"             # Support format ton image
 ] }
 bevy_rapier2d = "0.23.0"

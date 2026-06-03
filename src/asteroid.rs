@@ -4,6 +4,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 use rand::prelude::*;
 
+use crate::audio::AudioAssets;
 use crate::entity::*;
 use crate::game::*;
 
@@ -94,6 +95,7 @@ pub fn handle_asteroid_hit(
     mut commands: Commands,
     mut hit_events: EventReader<AsteroidHitEvent>,
     asset_server: Res<AssetServer>,
+    asset_audio: Res<AudioAssets>,
 ) {
     for event in hit_events.read() {
         match event.asteroid_size {
@@ -121,6 +123,10 @@ pub fn handle_asteroid_hit(
                 commands.entity(event.asteroid_entity).despawn();
             }
         }
+        commands.spawn(AudioBundle {
+            source: asset_audio.impact.clone(),
+            settings: PlaybackSettings::ONCE,
+        });
     }
 }
 

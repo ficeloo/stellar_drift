@@ -3,9 +3,10 @@
 use std::time::Duration;
 
 use crate::asteroid::*;
+use crate::audio::*;
 use crate::entity::*;
 use crate::game::*;
-use bevy::ecs::system::Despawn;
+
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::*;
 
@@ -66,6 +67,7 @@ pub fn move_player(
     keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<(&PlayerTimer, &mut Transform, &mut Velocity), With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    engine_query: Query<&AudioSink, With<EngineSound>>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
@@ -85,11 +87,17 @@ pub fn move_player(
             velocity.angvel -= P_ROT_SPEED;
         }
         let direction = transform.up().truncate();
-        if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
-            velocity.linvel += direction * P_SPEED;
-        }
-        if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
-            velocity.linvel -= ((direction * P_SPEED) / 4.0).clamp_length(0.0, 5.0);
+        let speed = velocity.linvel.length();
+        let normalized = (speed / (500.0 * P_SPEED)).clamp(0.0, 1.0);
+        if let Ok(sink) = engine_query.get_single() {
+            sink.set_volume(normalized);
+            sink.set_speed(1.0 + normalized * 0.1);
+            if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
+                velocity.linvel += direction * P_SPEED;
+            }
+            if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
+                velocity.linvel -= ((direction * P_SPEED) / 4.0).clamp_length(0.0, 5.0);
+            }
         }
 
         is_entity_oob(&mut transform, half_width, half_height);
@@ -150,6 +158,7 @@ pub fn despawn_bullet(
 pub fn player_respawn(
     mut player_query: Query<(&mut PlayerTimer, &mut Visibility, &mut CollisionGroups)>,
     health_state: ResMut<LevelState>,
+    engine_query: Query<&AudioSink, With<EngineSound>>,
     time: Res<Time>,
 ) {
     if let Ok((mut timers, mut visible, mut groups)) = player_query.get_single_mut() {
@@ -165,6 +174,9 @@ pub fn player_respawn(
             *visible = Visibility::Visible;
             timers.noclip.timer.reset();
             timers.is_respawning = false;
+            if let Ok(sink) = engine_query.get_single() {
+                sink.play();
+            }
         }
 
         if !timers.noclip.timer.finished() {
@@ -190,16 +202,18 @@ pub fn player_death(
             &mut Velocity,
             &mut Transform,
             &mut Visibility,
+            &mut CollisionGroups,
         ),
         With<Player>,
     >,
     mut health_state: ResMut<LevelState>,
     mut collide: EventReader<CollisionEvent>,
+    engine_query: Query<&AudioSink, With<EngineSound>>,
 ) {
     for colliding in collide.read() {
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
-                if let Ok((mut timers, mut velocity, mut transform, mut visibility)) =
+                if let Ok((mut timers, mut velocity, mut transform, mut visibility, mut groups)) =
                     player_query.get_mut(entity)
                 {
                     if timers.noclip.timer.finished() && health_state.health.current > 0 {
@@ -208,9 +222,13 @@ pub fn player_death(
                         transform.rotation = Quat::IDENTITY;
                         velocity.angvel = 0.0;
                         velocity.linvel = Vec2::ZERO;
+                        groups.filters = Group::NONE;
                         timers.respawn_timer.timer.reset();
                         timers.is_respawning = true;
                         health_state.health.current -= 1;
+                        if let Ok(sink) = engine_query.get_single() {
+                            sink.pause();
+                        }
                     }
                 }
             }
@@ -222,6 +240,7 @@ pub fn spawn_bullet(
     mut commands: Commands,
     mut player_query: Query<(&mut Transform, &mut PlayerTimer), With<Player>>,
     assets_server: Res<AssetServer>,
+    audio_assets: Res<AudioAssets>,
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -266,10 +285,18 @@ pub fn spawn_bullet(
     };
 
     commands.spawn(bullet_bundle);
+    commands.spawn(AudioBundle {
+        source: audio_assets.laser.clone(),
+        settings: PlaybackSettings::ONCE,
+    });
     player.1.shoot_cd.timer.reset();
 }
 
-pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
+pub fn spawn_player(
+    mut commands: Commands,
+    assets_server: Res<AssetServer>,
+    audio_assets: Res<AudioAssets>,
+) {
     let ship_asset = assets_server.load(P_SPRITE_PATH);
 
     let ship_sprite = SpriteBundle {
@@ -299,5 +326,15 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
         events: ActiveEvents::COLLISION_EVENTS,
         groups: CollisionGroups::new(GROUP_PLAYER, GROUP_ASTEROID),
     };
-    commands.spawn(player_bundle);
+    let player_entity = commands.spawn(player_bundle).id();
+    let engine = commands
+        .spawn((
+            AudioBundle {
+                source: audio_assets.engine.clone(),
+                settings: PlaybackSettings::LOOP,
+            },
+            EngineSound,
+        ))
+        .id();
+    commands.entity(player_entity).add_child(engine);
 }

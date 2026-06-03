@@ -10,6 +10,7 @@ use crate::game::LevelState;
 use crate::states::GameState;
 
 mod asteroid;
+mod audio;
 mod camera;
 mod entity;
 mod game;
@@ -36,6 +37,7 @@ fn main() {
         .add_event::<AsteroidHitEvent>();
 
     app.add_systems(Startup, camera::spawn_camera);
+    app.add_systems(Startup, audio::load_audio);
 
     app.add_systems(Update, states::menu.run_if(in_state(GameState::MainMenu)));
     app.add_systems(OnEnter(GameState::MainMenu), entity::remove_all_entities);

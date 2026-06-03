@@ -1,5 +1,7 @@
 /***** PLAYER.RS *****/
 
+use std::time::Duration;
+
 use crate::asteroid::*;
 use crate::entity::*;
 use crate::game::*;
@@ -29,6 +31,7 @@ pub struct Bullet;
 pub struct PlayerTimer {
     pub noclip: GameTimer,
     pub respawn_timer: GameTimer,
+    pub shoot_cd: GameTimer,
     pub is_respawning: bool,
 }
 
@@ -218,19 +221,24 @@ pub fn player_death(
 
 pub fn spawn_bullet(
     mut commands: Commands,
-    player_query: Query<(&mut Transform, &mut PlayerTimer), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut PlayerTimer), With<Player>>,
     assets_server: Res<AssetServer>,
     keyboard_input: Res<Input<KeyCode>>,
+    time: Res<Time>,
 ) {
+    let delta = time.delta();
+
+    let Ok(mut player) = player_query.get_single_mut() else {
+        return;
+    };
+
+    player.1.shoot_cd.timer.tick(delta);
+
     if !keyboard_input.pressed(KeyCode::Space) {
         return;
     }
 
-    let Ok(player) = player_query.get_single() else {
-        return;
-    };
-
-    if player.1.is_respawning {
+    if player.1.is_respawning || !player.1.shoot_cd.timer.finished() {
         return;
     }
 
@@ -259,6 +267,7 @@ pub fn spawn_bullet(
     };
 
     commands.spawn(bullet_bundle);
+    player.1.shoot_cd.timer.reset();
 }
 
 pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
@@ -270,12 +279,15 @@ pub fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
         ..default()
     };
 
+    let mut cooldown = GameTimer::new(0.2, TimerMode::Once);
+    cooldown.timer.tick(Duration::from_secs_f32(0.2));
     let player_bundle = PlayerBundle {
         player: Player,
         sprite: ship_sprite,
         timer: PlayerTimer {
             noclip: GameTimer::new(2.0, TimerMode::Once),
             respawn_timer: GameTimer::new(3.0, TimerMode::Once),
+            shoot_cd: cooldown,
             is_respawning: false,
         },
         body: RigidBody::Dynamic,

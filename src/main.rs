@@ -1,6 +1,7 @@
 /***** MAIN.RS *****/
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -23,6 +24,8 @@ struct DespawnSet;
 
 fn main() {
     let mut app = App::new();
+
+    app.insert_resource(AssetMetaCheck::Never);
     app.add_plugins(DefaultPlugins)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .insert_resource(RapierConfiguration {

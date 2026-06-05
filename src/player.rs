@@ -1,5 +1,6 @@
 /***** PLAYER.RS *****/
 
+use std::collections::HashSet;
 use std::time::Duration;
 
 use crate::asteroid::*;
@@ -12,8 +13,8 @@ use bevy_rapier2d::prelude::*;
 
 const P_SPRITE_SIZE: f32 = 0.3;
 const P_SPRITE_PATH: &str = "stellar_drifter.png";
-const P_SPEED: f32 = 10.0;
-const P_ROT_SPEED: f32 = 0.4;
+const P_SPEED: f32 = 1000.0;
+const P_ROT_SPEED: f32 = 48.;
 const P_SHAPE: f32 = 200.0;
 const LIN_DAMP: f32 = 1.2;
 const ANG_DAMP: f32 = 9.0;
@@ -68,6 +69,7 @@ pub fn move_player(
     mut player_query: Query<(&PlayerTimer, &mut Transform, &mut Velocity), With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     engine_query: Query<&AudioSink, With<EngineSound>>,
+    time: Res<Time>,
 ) {
     let Ok(window) = window_query.get_single() else {
         return;
@@ -81,22 +83,23 @@ pub fn move_player(
             return;
         }
         if keyboard_input.any_pressed([KeyCode::A, KeyCode::Left]) {
-            velocity.angvel += P_ROT_SPEED; //transform.rotate_z(P_ROT_SPEED * time.delta_seconds());
+            velocity.angvel += P_ROT_SPEED * time.delta_seconds(); //transform.rotate_z(P_ROT_SPEED * time.delta_seconds());
         }
         if keyboard_input.any_pressed([KeyCode::D, KeyCode::Right]) {
-            velocity.angvel -= P_ROT_SPEED;
+            velocity.angvel -= P_ROT_SPEED * time.delta_seconds();
         }
         let direction = transform.up().truncate();
         let speed = velocity.linvel.length();
-        let normalized = (speed / (500.0 * P_SPEED)).clamp(0.0, 1.0);
+        let normalized = (speed / (2. * P_SPEED)).clamp(0.0, 1.0);
         if let Ok(sink) = engine_query.get_single() {
             sink.set_volume(normalized);
             sink.set_speed(1.0 + normalized * 0.1);
             if keyboard_input.any_pressed([KeyCode::W, KeyCode::Up]) {
-                velocity.linvel += direction * P_SPEED;
+                velocity.linvel += direction * P_SPEED * time.delta_seconds();
             }
             if keyboard_input.any_pressed([KeyCode::S, KeyCode::Down]) {
-                velocity.linvel -= ((direction * P_SPEED) / 4.0).clamp_length(0.0, 5.0);
+                velocity.linvel -=
+                    ((direction * P_SPEED * time.delta_seconds()) / 4.0).clamp_length(0.0, 5.0);
             }
         }
 
@@ -135,13 +138,15 @@ pub fn despawn_bullet(
         }
     }
 
+    let mut hit_this_frame: HashSet<Entity> = HashSet::new();
+
     for colliding in collide.read() {
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
                 if bullet_query.contains(entity) || asteroid_query.contains(entity) {
                     commands.entity(entity).insert(Despawning);
                 }
-                if asteroid_query.contains(entity) {
+                if asteroid_query.contains(entity) && hit_this_frame.insert(entity) {
                     let Ok(asteroid) = asteroid_query.get(entity) else {
                         continue;
                     };

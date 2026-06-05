@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::plugin::RapierConfiguration;
 
 use crate::asteroid::Asteroid;
-use crate::entity::Health;
+use crate::entity::{Despawning, Health};
 use crate::states::GameState;
 
 #[derive(Resource)]
@@ -27,7 +27,7 @@ pub fn is_entity_oob(transform: &mut Transform, half_width: f32, half_height: f3
 }
 
 pub fn level_complete(
-    asteroid_query: Query<&Asteroid>,
+    asteroid_query: Query<&Asteroid, Without<Despawning>>,
     mut next_state: ResMut<NextState<GameState>>,
     mut level_state: ResMut<LevelState>,
 ) {

@@ -116,7 +116,7 @@ pub fn handle_asteroid_hit(
                     ));
                 }
             }
-            _ => {}
+            AsteroidSize::Small => {}
         }
         commands.spawn(AudioBundle {
             source: asset_audio.impact.clone(),

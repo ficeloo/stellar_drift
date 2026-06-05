@@ -40,7 +40,7 @@ impl GameTimer {
 
 pub fn apply_despawn(mut commands: Commands, query: Query<Entity, With<Despawning>>) {
     for entity in query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).despawn_recursive();
     }
 }
 

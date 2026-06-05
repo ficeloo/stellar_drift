@@ -1,12 +1,13 @@
 # Stellar Drift
-Projet d'apprentissage en Rust + Bevy reprenant le jeu Asteroid d'Atari.
+Projet d'apprentissage en Rust + Bevy reprenant le jeu Asteroids d'Atari.
+
+![](media/stellar_drift.gif)
 
 ## Statut
-> 🚧 Projet en cours de développement. 🚧
 
 Il s'agit de mon premier projet développé entièrement en Rust sous Bevy.
 
-Jouable prochainement. Les prototypes peuvent être lancés.
+Jouable sur navigateur dès maintenant - [sur ma page itch.io](https://ficelo.itch.io/stellar-drift)
 
 ## Description du projet
 Ce projet est à but éducatif.
@@ -18,7 +19,7 @@ Il me permet aussi d'apprendre l'**ECS**, *Entity Component System*, ainsi que d
 J'y intègre des notions clés, afin de saisir en profondeur les étapes de développement d'un jeu, comme :
 - Un système de rendu physique, avec Rapier2D.
 - Une gestion des états de jeu (Menu, Pause, Jeu).
-- Une intégration audio (🚧 A VENIR 🚧)
+- Une intégration audio 
 
 ## Stack technique
 - **Langage** : Rust (édition 2021).
@@ -30,19 +31,30 @@ J'y intègre des notions clés, afin de saisir en profondeur les étapes de dév
 Prérequis :
 - Rust installé ([rustup.rs](https://rustup.rs))
 
-### Sous Linux
-``` bash
+### Version native (Linux / desktop)
 git clone https://github.com/ficeloo/stellar_drift.git
 cd stellar_drift
 cargo run --release
-```
-> Le `--release` permet de lancer sans le mode débug, avec une compilation bien plus rapide.
+> Le mode release produit un binaire optimisé : la compilation est plus longue,
+> mais le jeu tourne de façon fluide.
+
+### Version web (en local)
+Prérequis : trunk (`cargo install trunk`) + la cible wasm
+(`rustup target add wasm32-unknown-unknown`)
+trunk serve   # puis ouvrir l'URL locale affichée
 
 ### Sous Windows
-1. Téléchargez la dernière version de la build dans la section [Releases](https://github.com/ficeloo/stellar_drift/releases) (actuellement v0.4).
+1. Téléchargez la dernière version de la build dans la section [Releases](https://github.com/ficeloo/stellar_drift/releases) (actuellement v1.0).
 2. Téléchargez également le dossier `assets/` correspondant.
 3. Placez l'exécutable et le dossier `assets/` dans un même répertoire.
 4. Lancez l'exécutable.
+
+## Screenshots
+
+![Stellar Drift - mainmenu](media/MainMenu.png)
+![Stellar Drift - gameplay](media/CoreGameplay.png)
+![Stellar Drift - pausemenu](media/PauseMenu.png)
+![Stellar Drift - gameover](media/GameOver.png)
 
 ## Ressources
 ### Assets

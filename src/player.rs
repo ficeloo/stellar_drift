@@ -126,7 +126,7 @@ pub fn despawn_bullet(
     time: Res<Time>,
     mut collide: EventReader<CollisionEvent>,
     mut hit_events: EventWriter<AsteroidHitEvent>,
-    asteroid_query: Query<(&Transform, &AsteroidSize), With<Asteroid>>,
+    asteroid_query: Query<(&Transform, &AsteroidSize), (With<Asteroid>, Without<Despawning>)>,
 ) {
     for (entity, mut timer) in bullet_query.iter_mut() {
         timer.timer.tick(time.delta());
@@ -138,14 +138,14 @@ pub fn despawn_bullet(
     for colliding in collide.read() {
         if let CollisionEvent::Started(e1, e2, _) = *colliding {
             for entity in [e1, e2] {
-                if bullet_query.contains(entity) {
+                if bullet_query.contains(entity) || asteroid_query.contains(entity) {
                     commands.entity(entity).insert(Despawning);
-                } else if asteroid_query.contains(entity) {
+                }
+                if asteroid_query.contains(entity) {
                     let Ok(asteroid) = asteroid_query.get(entity) else {
                         continue;
                     };
                     hit_events.send(AsteroidHitEvent {
-                        asteroid_entity: entity,
                         asteroid_position: asteroid.0.translation,
                         asteroid_size: *asteroid.1,
                     })
@@ -287,7 +287,7 @@ pub fn spawn_bullet(
     commands.spawn(bullet_bundle);
     commands.spawn(AudioBundle {
         source: audio_assets.laser.clone(),
-        settings: PlaybackSettings::ONCE,
+        settings: PlaybackSettings::DESPAWN,
     });
     player.1.shoot_cd.timer.reset();
 }

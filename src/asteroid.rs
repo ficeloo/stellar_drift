@@ -35,7 +35,6 @@ pub enum AsteroidSize {
 
 #[derive(Event)]
 pub struct AsteroidHitEvent {
-    pub asteroid_entity: Entity,
     pub asteroid_position: Vec3,
     pub asteroid_size: AsteroidSize,
 }
@@ -107,7 +106,6 @@ pub fn handle_asteroid_hit(
                         &asset_server,
                     ));
                 }
-                commands.entity(event.asteroid_entity).despawn();
             }
             AsteroidSize::Medium => {
                 for _ in 0..2 {
@@ -117,15 +115,12 @@ pub fn handle_asteroid_hit(
                         &asset_server,
                     ));
                 }
-                commands.entity(event.asteroid_entity).despawn();
             }
-            AsteroidSize::Small => {
-                commands.entity(event.asteroid_entity).despawn();
-            }
+            _ => {}
         }
         commands.spawn(AudioBundle {
             source: asset_audio.impact.clone(),
-            settings: PlaybackSettings::ONCE,
+            settings: PlaybackSettings::DESPAWN,
         });
     }
 }

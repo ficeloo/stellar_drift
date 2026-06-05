@@ -8,7 +8,7 @@ edition = "2021"
 bevy = { version = "0.12.1", default-features = false, features = [
     "bevy_winit",     # Fenêtrage
     "bevy_render",    # Moteur de rendu
-    "bevy_sprite",    # Sprites 2D (ton vaisseau)
+    "bevy_sprite",    # Sprites 2D 
 	"bevy_ui",
 	"bevy_text",
 	"bevy_audio",
@@ -16,15 +16,18 @@ bevy = { version = "0.12.1", default-features = false, features = [
     "x11",            # Support Linux école
 	"mp3",
 	"wav",
+	"webgl2", # Support Web du projet
     "png"             # Support format ton image
 ] }
 bevy_rapier2d = "0.23.0"
 rand = "0.8.5"
+getrandom = { version = "0.2", features = ["js"] }
+getrandom03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
 
 [profile.dev]
-debug = 0         # INDISPENSABLE : supprime les symboles de debug (gain de place énorme)
+debug = 0         # INDISPENSABLE : supprime les symboles de debug
 strip = "symbols"    # Retire les symboles du binaire final
-incremental = false  # Désactive l'incrémental (génère moins de fichiers temporaires)
+incremental = false  # Désactive l'incrémental
 opt-level = 1     # Un peu d'optimisation pour que ça ne rame pas trop
 
 [profile.dev.package."*"]

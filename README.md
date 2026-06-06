@@ -95,7 +95,7 @@ trunk serve   # puis ouvrir l'URL locale affichée
 </table>
 
 ## Ressources & crédits
-- **Moteur** : [Bevy](https://bevyengine.org/) (Rust).
-- **Physique** : [bevy_rapier2d](https://github.com/dimforge/bevy_rapier).
-- **Assets** : réalisés par anim86 — [profil itch.io](https://anim86.itch.io/).
-- **Sound Design** : réalisés en co-création avec Nam-Son - [instagram](https://www.instagram.com/ns0_pr4/)
+- **Moteur** : ![Bevy](https://bevyengine.org/) (Rust).
+- **Physique** : ![bevy_rapier2d](https://github.com/dimforge/bevy_rapier).
+- **Assets** : réalisés par anim86 — ![profil itch.io](https://anim86.itch.io/).
+- **Sound Design** : réalisés en co-création avec Nam-Son - ![instagram](https://www.instagram.com/ns0_pr4/).

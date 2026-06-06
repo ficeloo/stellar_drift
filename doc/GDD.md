@@ -22,7 +22,7 @@ Le projet est avant tout un exercice : une architecture délibérément réduite
 ## Boucle de gameplay
 
 **Boucle principale (macro-loop)**
-> Nettoyer une vague → Nouvelle vague (n + 1 astéroïdes) → Répéter
+> Nettoyer une vague → Nouvelle vague (+ 1 astéroïdes) → Répéter
 
 **Boucle instantanée (micro-loop)**
 > S'orienter → Avancer → Viser → Tirer → Esquiver
@@ -35,12 +35,12 @@ Chaque astéroïde détruit se fragmente, ce qui augmente momentanément le nomb
 ## Mécaniques principales
 
 ### Déplacement (inertiel)
-Le vaisseau pivote sur lui-même et accélère par poussée. Il conserve son inertie et est progressivement ralenti par un amortissement. Aux bords de l'écran, il réapparaît du côté opposé (*Monde toroïdale*).
-> _Le joueur divise sa vitesse de moitié au rythme de_ $t^½ = ln(2) / 1.2 ≈ 0.578 secs$.
+Le vaisseau pivote sur lui-même et accélère par poussée. Il conserve son inertie et est progressivement ralenti par un amortissement. Aux bords de l'écran, il réapparaît du côté opposé (*Monde toroïdal*).
+> _Le joueur divise sa vitesse de moitié au rythme de_ $t_½ = ln(2) / 1.2 ≈ 0.578 s$.
 
 ### Tir
 Le vaisseau tire des projectiles dans la direction où il pointe. Chaque projectile disparaît après une durée de vie limitée.
-> _Cadence de tir: 0.2 sec — Durée de vie du projectile: 1.5 sec._
+> _Cadence de tir: 0.2 s — Durée de vie du projectile: 1.5 s._
 
 ### Astéroïdes & fragmentation
 Trois tailles : grand, moyen, petit. À l'impact d'un projectile, un astéroïde se scinde :
@@ -50,11 +50,11 @@ Chaque astéroïde se déplace et tourne avec une vitesse et une orientation al�
 
 ### Vagues & difficulté
 Une vague est terminée lorsque tous les astéroïdes (fragments compris) sont détruits ; la vague suivante démarre alors, plus dense. Le nombre d'astéroïdes augmente à chaque niveau.
-> _Soit N le niveau actuel, la vague d'astéroide est composée de N + 3 Grands astéroides._
+> _Soit N le niveau actuel, la vague d'astéroïde est composée de N + 3 grands astéroïdes._
 
 ### Vies, mort & respawn
 Le joueur démarre avec 3 vies. Toute collision entre le vaisseau et un astéroïde coûte une vie. Le vaisseau réapparaît alors avec une brève invincibilité ; à 0 vie, c'est le Game Over.
-> _Durée de l'invicibilté : 2.0 secs._
+> _Durée de l'invicibilté : 2.0 s._
 
 ### États de jeu
 Menu principal → Jeu → (Pause) → Transition de vague → Game Over. La pause gèle la simulation physique sans détruire le monde. L'écran de Game Over permet de relancer une partie ou de revenir au menu.
@@ -75,7 +75,7 @@ Avant la refonte, Stellar Drift était un prototype jouable mais incomplet. La r
 ### Le travail derrière
 Certains systèmes se sont imposés à moi au fur et à mesure du projet.
 - La machine à états : Afin d'avoir une sensation de progression fiable et une interface intéressante, j'ai introduit plusieurs états (MainMenu, Paused, LevelTransition...). Passant d'une simple boucle de jeu à un jeu complet.
-- Déploiment WASM : Premier portage d'un jeu WASM. Il était plus intéressant de pouvoir jouer à ce petit jeu sur mon portfolio, j'ai donc dû créer un portage avec Trunk pour y parvenir.
+- Déploiement WASM : Premier portage d'un jeu WASM. Il était plus intéressant de pouvoir jouer à ce petit jeu sur mon portfolio, j'ai donc dû créer un portage avec Trunk pour y parvenir.
 
 ## Ce que je referais autrement / limites
 
@@ -83,7 +83,7 @@ Certains systèmes se sont imposés à moi au fur et à mesure du projet.
 Ce projet étant mon premier jeu fait de A à Z, j'ai parfois manqué de supervision sur l'importance de certains éléments en architecture ECS et Game Design.
 
 Je me suis rendu compte de l'importance d'implémenter une machine à états efficace dès le début, elle me permet de structurer le projet en différentes parties.
-Je ferais aussi attention à diviser efficacement les composants (! NOTE A MOI-MEME: CHAQUE PETIT ELEMENT DOIT ETRE UN COMPOSANT !).
+Je ferais aussi attention à diviser efficacement les composants, apprenant ainsi à découper en composants plus granulaires.
 
 ### Direction artistique
 Durant la conception, j'ai été tenté d'aborder certains éléments intéressant comme :
@@ -91,7 +91,7 @@ Durant la conception, j'ai été tenté d'aborder certains éléments intéressa
 - une diversité dans les feedbacks sonores (plusieurs sons d'explosions)
 - une musique de fond.
 
-J'ai identifié ces éléments comme non-essentiel au principe du jeu voulu initialement, à savoir une apprentissage d'une architecture ECS et de Bevy.
+J'ai identifié ces éléments comme non-essentiel au principe du jeu voulu initialement, à savoir un apprentissage d'une architecture ECS et de Bevy.
 >_Je me réserve le droit d'apporter de légère modifcations si l'envie m'en prend._
 
 ## Stack & architecture
